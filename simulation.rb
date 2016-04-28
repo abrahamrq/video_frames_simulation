@@ -13,6 +13,10 @@ f.each_line do |line|
   frames << line.gsub("\n",'')
 end
 
+tp = 2.0
+clients_rate = 1.0/tp
+client_arrival_time = clients_rate
+
 number_of_packets = 0
 
 frames.map! do |frame|
@@ -25,7 +29,6 @@ n=0
 t=0.0
 arrival_time = 0.0
 departure_time = 0.0
-client_arrival_time = 0.5
 
 total_messages = 0
 
@@ -48,8 +51,8 @@ while (t < 100)
   # puts t
   # puts "#{arrival_time}, #{dieeparture_time}"
   if (t > client_arrival_time)
-    client_arrival_time += 0.5
-    # clients_current_frame << 0
+    client_arrival_time += clients_rate
+    clients_current_frame << 0
   else
     if (arrival_time<=departure_time)
       total_messages += 1
@@ -114,7 +117,6 @@ r_nurx = n_nurx/x_nurx
 puts "\n"
 puts "Total time of simulation : #{t}"
 puts "Completed messages       : #{c} " 
-puts "Requests                 : #{total_messages}"
 puts "Clients subscribed       : #{clients_current_frame.size}"
 # puts "arrival packets/second   : #{lambda}"
 # puts "departure packets/second : #{miu}"
