@@ -27,9 +27,9 @@ frames = []
 f = File.open("data/Terse_Jurassic.dat") or die "Unable to open file..."
 
 # RANDOM INITIAL FRAME
-# initial_frame = rand(10000..50000)
+# initial_frame = initial_delay = rand(10000..50000)
 # STATIC INITIAL FRAME
-initial_frame = 10000
+initial_frame = initial_delay = 10000
 aux = 0
 f.each_line do |line|
   if aux > initial_frame + 2000
@@ -44,7 +44,26 @@ frames.map! do |frame|
   (frame.to_f / MTU).ceil
 end 
 
+f.close
+
 # number_of_packets = frames.inject(0){|sum,x| sum + x }
+
+########################### GENERATE DELAYS ####################################
+
+delays = []
+f = File.open("data/amazon_delays.dat") or die "Unable to open file..."
+
+aux = 0
+f.each_line do |line|
+  if aux > initial_delay + 2000
+    break
+  elsif aux > initial_delay
+    delays << line.gsub("\n",'').to_f / 1000000
+  end
+  aux += 1
+end
+
+f.close
 
 ################################################################################
 
@@ -62,15 +81,15 @@ departure_time = 0.0
 total_messages = 0
 
 # Completed packets
-completed_packets=0
+completed_packets = 0
 # Busy time
 b = 0.0
 # Last time (helper for busy time)
-last_time=0.0
+last_time = 0.0
 
 #area
-dt=0.0
-s=0.0
+dt = 0.0
+s = 0.0
 
 # SETUP
 velocity_of_bandwidth = 0.000222
@@ -80,6 +99,10 @@ rejected_requests = 0
 errors_at_sending = 0
 clients_finished = 0
 max_clients_in_system = 0
+delayed_time = 0.0
+buffer_full = false
+buffer_full_time = 0.0
+buffer_full_initial_time = 0.0
  
 while (t < 1000)
   # if there are no more clients it ends the simulation
@@ -101,27 +124,25 @@ while (t < 1000)
         # Update total messages
         total_messages += 1
         # If packets will fit in buffer put them in it
-        if n+(frames[clients_current_frame[current_client]]) <= max_capacity
+        if n + (frames[clients_current_frame[current_client]]) <= max_capacity
+          delayed_time += (delays[clients_current_frame[current_client]])
           # update time
-          t=arrival_time
+          t = arrival_time
           # update area
-          dt=t-last_time
-          s=s+n*dt
+          dt = t - last_time
+          s = s + n * dt
           # Add packets to buffer
-          n=n+(frames[clients_current_frame[current_client]])
-          frames[clients_current_frame[current_client]].times do
-            # print '.'
-          end
+          n = n + (frames[clients_current_frame[current_client]])
           # update last time
-          last_time=t
+          last_time = t
           # new arrival time
-          z= velocity_of_arrival
-          arrival_time=t+z
+          z = velocity_of_arrival
+          arrival_time = t + z
           # if there is only one packet in the system update departure time
           if (n==1)
-            z= velocity_of_bandwidth
-            b=b+z
-            departure_time=t+z
+            z = velocity_of_bandwidth
+            b = b + z
+            departure_time =t + z
           end
           # clients control, if the client finished delete it from the list
           # if not, update current frame of the user and choose next user
@@ -135,7 +156,11 @@ while (t < 1000)
         else
           # if the packet didn't fit update rejected messages
           rejected_requests += 1
-          z= velocity_of_arrival
+          z = velocity_of_arrival
+          if !buffer_full
+            buffer_full = true
+            buffer_full_initial_time = t
+          end
           arrival_time=t+z
         end
       else
@@ -165,6 +190,11 @@ while (t < 1000)
           end
         # update departure time
         departure_time=t+z
+        # compute buffer full time
+        if buffer_full
+          buffer_full = false
+          buffer_full_time += t - buffer_full_initial_time
+        end
       end
     end
   end
@@ -185,6 +215,7 @@ puts "\n"
 puts "Total time of simulation        : #{t}"
 puts "Completed messages              : #{completed_packets}" 
 puts "Errors at sending               : #{errors_at_sending}"
+puts "Initial clients                 : #{k}"
 puts "Clients subscribed(final)       : #{clients_current_frame.size}"
 puts "Clients finished                : #{clients_finished}"
 puts "Max clients on system           : #{max_clients_in_system}"
@@ -193,5 +224,7 @@ puts "U                               : #{u_nurx}"
 puts "R                               : #{r_nurx}"
 puts "X                               : #{x_nurx}"
 puts "Requests rejected               : #{rejected_requests}"
-puts "probability(reject of buffer)   : #{p_of_rejections}"
-
+puts "Probability(reject of buffer)   : #{p_of_rejections}"
+puts "Total delay time                : #{delayed_time}"
+puts "Total buffer full time          : #{buffer_full_time}"
+puts "Buffer full time %              : #{buffer_full_time/t}"
