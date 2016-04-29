@@ -1,16 +1,21 @@
 require 'pry'
 
 MTU = 1500
-k = 20
+k = 5
 clients_current_frame = []
 k.times do 
   clients_current_frame << 0
 end
 current_client = 0
 frames = []
-f = File.open("data/Terse_silence.dat") or die "Unable to open file..."
+f = File.open("data/Terse_Jurassic.dat") or die "Unable to open file..."
+aux = 0
 f.each_line do |line|
   frames << line.gsub("\n",'')
+  aux += 1
+  if aux > 2000
+    break
+  end
 end
 
 tp = 2.0
@@ -47,58 +52,63 @@ rejected_messages = 0
 minimum_frame_per_second = 24
 requests = 0
  
-while (t < 100)
-  # puts t
-  # puts "#{arrival_time}, #{dieeparture_time}"
-  if (t > client_arrival_time)
-    client_arrival_time += clients_rate
-    clients_current_frame << 0
+while (t < 1000)
+  if clients_current_frame.size == 0
+    t = 15001
   else
-    if (arrival_time<=departure_time)
-      total_messages += 1
-      if n+(frames[clients_current_frame[current_client]]) <= max_capacity
-        t=arrival_time
-        dt=t-last_time
-        s=s+n*dt
-        n=n+(frames[clients_current_frame[current_client]])
-        frames[clients_current_frame[current_client]].times do
-          print '.'
-        end
-        last_time=t
-        z= 0.001
-        arrival_time=t+z
-        if (n==1)
-          z= 0.000222
-          b=b+z
-          departure_time=t+z
-        end
-        if clients_current_frame[current_client] >= number_of_packets
-          clients_current_frame.delete_at(current_client)
+    # puts t
+    # puts "#{arrival_time}, #{dieeparture_time}"
+    if (t > client_arrival_time)
+      client_arrival_time += clients_rate
+      ## ENABLE DYNAMIC CLIENTS
+      clients_current_frame << 0
+    else
+      if (arrival_time<=departure_time)
+        total_messages += 1
+        if n+(frames[clients_current_frame[current_client]]) <= max_capacity
+          t=arrival_time
+          dt=t-last_time
+          s=s+n*dt
+          n=n+(frames[clients_current_frame[current_client]])
+          frames[clients_current_frame[current_client]].times do
+            print '.'
+          end
+          last_time=t
+          z= 0.001
+          arrival_time=t+z
+          if (n==1)
+            z= 0.000222
+            b=b+z
+            departure_time=t+z
+          end
+          if clients_current_frame[current_client] + 1 >= frames.size
+            clients_current_frame.delete_at(current_client)
+          else
+            clients_current_frame[current_client] += 1
+            current_client = (current_client + 1) % clients_current_frame.size
+          end
         else
-          clients_current_frame[current_client] += 1
-          current_client = (current_client + 1) % clients_current_frame.size
+          rejected_messages += 1
+          z= 0.001
+          arrival_time=t+z
         end
       else
-        rejected_messages += 1
-        z= 0.001
-        arrival_time=t+z
-      end
-    else
-      print "*"
-      t=departure_time
-      z= 0.000222
-      if (n > 0)
-        c=c+1
-        dt=t-last_time
-        n=n-1
-        if (n==0) 
-          departure_time=1000000
+        print "*"
+        t=departure_time
+        z= 0.000222
+        if (n > 0)
+          c=c+1
+          dt=t-last_time
+          n=n-1
+          if (n==0) 
+            departure_time=1000000
+          end
+          s=s+n*dt
+          last_time=t
+          b=b+z
         end
-        s=s+n*dt
-        last_time=t
-        b=b+z
+        departure_time=t+z
       end
-      departure_time=t+z
     end
   end
 end
