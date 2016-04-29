@@ -4,7 +4,7 @@ require 'pry'
 MTU = 1500
 # VARIABLES FOR THE EXCERCISES
 max_capacity = 200
-k = 15
+k = 15 #Clients
 ############################# Initial clients ##################################
 
 clients_current_frame = []
@@ -174,24 +174,26 @@ if b > t
   b = t
 end
 
-p_of_rejections = rejected_requests / total_messages
+p_of_rejections = rejected_requests / total_messages.to_f
 
+  
 x_nurx = completed_packets/t
 u_nurx = b/t
 n_nurx = s/t
 r_nurx = n_nurx/x_nurx
 
 puts "\n"
+puts "Total Messages                  : #{total_messages}"
 puts "Total time of simulation        : #{t}"
-puts "Completed messages              : #{completed_packets}" 
+puts "Completed packages              : #{completed_packets}" 
 puts "Errors at sending               : #{errors_at_sending}"
-puts "Clients subscribed(final)       : #{clients_current_frame.size}"
+puts "Clients subscribed (final)      : #{clients_current_frame.size}"
 puts "Clients finished                : #{clients_finished}"
 puts "Max clients on system           : #{max_clients_in_system}"
 puts "N                               : #{n_nurx}"
 puts "U                               : #{u_nurx}"
 puts "R                               : #{r_nurx}"
 puts "X                               : #{x_nurx}"
-puts "Requests rejected               : #{rejected_requests}"
-puts "probability(reject of buffer)   : #{p_of_rejections}"
+puts "Message Requests rejected       : #{rejected_requests}"
+puts "Probability (reject of buffer)  : #{p_of_rejections}"
 
