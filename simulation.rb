@@ -2,9 +2,11 @@ require 'pry'
 
 # MAX TRANSFER UNIT
 MTU = 1500
+# VARIABLES FOR THE EXCERCISES
+max_capacity = 200
+k = 15
 ############################# Initial clients ##################################
 
-k = 15
 clients_current_frame = []
 k.times do 
   clients_current_frame << 0
@@ -73,7 +75,6 @@ s=0.0
 # SETUP
 velocity_of_bandwidth = 0.000222
 velocity_of_arrival = 0.001
-max_capacity = 200
 
 rejected_requests = 0
 errors_at_sending = 0
