@@ -18,6 +18,9 @@ f.each_line do |line|
   end
 end
 
+# Initial error probability
+e=0.001*k
+
 tp = 2.0
 clients_rate = 1.0/tp
 client_arrival_time = clients_rate
@@ -51,6 +54,7 @@ max_capacity = 200
 rejected_messages = 0
 minimum_frame_per_second = 24
 requests = 0
+errors_at_sending = 0
  
 while (t < 1000)
   if clients_current_frame.size == 0
@@ -93,19 +97,25 @@ while (t < 1000)
           arrival_time=t+z
         end
       else
-        print "*"
         t=departure_time
         z= 0.000222
-        if (n > 0)
-          c=c+1
-          dt=t-last_time
-          n=n-1
-          if (n==0) 
-            departure_time=1000000
+        e=0.001 * clients_current_frame.size
+        ## REMOVE TRUE TO ENABLE ERRORS
+        if (rand() > e || true)
+          if (n > 0)
+            print "*"
+            c=c+1
+            dt=t-last_time
+            n=n-1
+            if (n==0) 
+              departure_time=1000000
+            end
+            s=s+n*dt
+            last_time=t
+            b=b+z
           end
-          s=s+n*dt
-          last_time=t
-          b=b+z
+        else
+          errors_at_sending += 1
         end
         departure_time=t+z
       end
@@ -125,17 +135,15 @@ n_nurx = s/t
 r_nurx = n_nurx/x_nurx
 
 puts "\n"
-puts "Total time of simulation : #{t}"
-puts "Completed messages       : #{c} " 
-puts "Clients subscribed       : #{clients_current_frame.size}"
-# puts "arrival packets/second   : #{lambda}"
-# puts "departure packets/second : #{miu}"
-# puts "max capacity             : #{max_capacity}"
-# puts "message size             : #{size}"
-puts "N                        : #{n_nurx}"
-puts "U                        : #{u_nurx}"
-puts "R                        : #{r_nurx}"
-puts "X                        : #{x_nurx}"
-puts "Messages rejected        : #{rejected_messages}"
-puts "probability(reject)      : #{p_of_rejections}"
+puts "Total time of simulation   : #{t}"
+puts "Completed messages         : #{c}" 
+puts "Errors at sending          : #{errors_at_sending}"
+
+puts "Clients subscribed(final)  : #{clients_current_frame.size}"
+puts "N                          : #{n_nurx}"
+puts "U                          : #{u_nurx}"
+puts "R                          : #{r_nurx}"
+puts "X                          : #{x_nurx}"
+puts "Messages rejected          : #{rejected_messages}"
+puts "probability(reject)        : #{p_of_rejections}"
 
