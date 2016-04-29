@@ -4,7 +4,7 @@ require 'pry'
 MTU = 1500
 # VARIABLES FOR THE EXCERCISES
 max_capacity = 200
-k = 15
+k = 15 #Clients
 ############################# Initial clients ##################################
 
 clients_current_frame = []
@@ -204,27 +204,29 @@ if b > t
   b = t
 end
 
-p_of_rejections = rejected_requests / total_messages
+p_of_rejections = rejected_requests / total_messages.to_f
 
+  
 x_nurx = completed_packets/t
 u_nurx = b/t
 n_nurx = s/t
 r_nurx = n_nurx/x_nurx
 
 puts "\n"
-puts "Total time of simulation        : #{t}"
-puts "Completed messages              : #{completed_packets}" 
+puts "Total Messages                  : #{total_messages}"
+puts "Total time of simulation        : #{t.round(8)}"
+puts "Completed packages              : #{completed_packets}" 
 puts "Errors at sending               : #{errors_at_sending}"
 puts "Initial clients                 : #{k}"
 puts "Clients subscribed(final)       : #{clients_current_frame.size}"
 puts "Clients finished                : #{clients_finished}"
 puts "Max clients on system           : #{max_clients_in_system}"
-puts "N                               : #{n_nurx}"
-puts "U                               : #{u_nurx}"
-puts "R                               : #{r_nurx}"
-puts "X                               : #{x_nurx}"
-puts "Requests rejected               : #{rejected_requests}"
-puts "Probability(reject of buffer)   : #{p_of_rejections}"
-puts "Total delay time                : #{delayed_time}"
-puts "Total buffer full time          : #{buffer_full_time}"
-puts "Buffer full time %              : #{buffer_full_time/t}"
+puts "N                               : #{n_nurx.round(8)}"
+puts "U                               : #{u_nurx.round(8)}"
+puts "R                               : #{r_nurx.round(8)}"
+puts "X                               : #{x_nurx.round(8)}"
+puts "Message Requests rejected       : #{rejected_requests}"
+puts "Probability(reject of buffer)   : #{"%.8f" % p_of_rejections.round(8)}"
+puts "Total delay time                : #{delayed_time.round(8)}"
+puts "Total buffer full time          : #{buffer_full_time.round(8)}"
+puts "Buffer full time %              : #{"%.8f" % (buffer_full_time/t).round(8)}"
