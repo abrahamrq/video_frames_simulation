@@ -3,8 +3,8 @@ require 'pry'
 # MAX TRANSFER UNIT
 MTU = 1500
 # VARIABLES FOR THE EXCERCISES
-max_capacity = 200
-k = 15 #Clients
+max_capacity = 100
+k = 10 #Clients
 ############################# Initial clients ##################################
 
 clients_current_frame = []
@@ -99,13 +99,21 @@ rejected_requests = 0
 errors_at_sending = 0
 clients_finished = 0
 max_clients_in_system = 0
+min_clients_in_system = k
+max_packets_in_queue = 0
 delayed_time = 0.0
 buffer_full = false
 buffer_full_time = 0.0
 buffer_full_initial_time = 0.0
+buffer_empty = false
+buffer_empty_time = 0.0
+buffer_empty_initial_time = 0.0
  
 while (t < 1000)
   # if there are no more clients it ends the simulation
+  if max_packets_in_queue < n
+    max_packets_in_queue = n
+  end
   if clients_current_frame.size == 0
     break
   else
@@ -118,6 +126,9 @@ while (t < 1000)
       if max_clients_in_system < clients_current_frame.size
         max_clients_in_system = clients_current_frame.size
       end
+      if min_clients_in_system > clients_current_frame.size
+        min_clients_in_system = clients_current_frame.size
+      end
     else
       # Choose betwen an arrival or a departure
       if (arrival_time <= departure_time)
@@ -125,6 +136,10 @@ while (t < 1000)
         total_messages += 1
         # If packets will fit in buffer put them in it
         if n + (frames[clients_current_frame[current_client]]) <= max_capacity
+          if (buffer_empty)
+            buffer_empty = false
+            buffer_empty_time += t - buffer_empty_initial_time
+          end
           delayed_time += (delays[clients_current_frame[current_client]])
           # update time
           t = arrival_time
@@ -138,12 +153,6 @@ while (t < 1000)
           # new arrival time
           z = velocity_of_arrival
           arrival_time = t + z
-          # if there is only one packet in the system update departure time
-          if (n==1)
-            z = velocity_of_bandwidth
-            b = b + z
-            departure_time =t + z
-          end
           # clients control, if the client finished delete it from the list
           # if not, update current frame of the user and choose next user
           if clients_current_frame[current_client] + 1 >= frames.size
@@ -179,17 +188,20 @@ while (t < 1000)
           # remove packet from buffer and complete packet
           # print "*"
           dt=t-last_time
-          n=n-1
-          b=b+z
+          n = n - 1
+          b = b + z
           if (n==0)
-            # no more packets? finish with simulation
-            departure_time=1000000
+            if ! buffer_empty
+              buffer_empty = true
+              buffer_empty_initial_time = t
+            end
+            departure_time = 1000000
           end
-          s=s+n*dt
-          last_time=t
-          end
+          s = s + n * dt
+          last_time = t
+        end
         # update departure time
-        departure_time=t+z
+        departure_time= t + z
         # compute buffer full time
         if buffer_full
           buffer_full = false
@@ -206,7 +218,6 @@ end
 
 p_of_rejections = rejected_requests / total_messages.to_f
 
-  
 x_nurx = completed_packets/t
 u_nurx = b/t
 n_nurx = s/t
@@ -221,6 +232,8 @@ puts "Initial clients                 : #{k}"
 puts "Clients subscribed(final)       : #{clients_current_frame.size}"
 puts "Clients finished                : #{clients_finished}"
 puts "Max clients on system           : #{max_clients_in_system}"
+puts "Min clients on system           : #{min_clients_in_system}"
+puts "Max packets on queue            : #{max_packets_in_queue}"
 puts "N                               : #{n_nurx.round(8)}"
 puts "U                               : #{u_nurx.round(8)}"
 puts "R                               : #{r_nurx.round(8)}"
@@ -230,3 +243,5 @@ puts "Probability(reject of buffer)   : #{"%.8f" % p_of_rejections.round(8)}"
 puts "Total delay time                : #{delayed_time.round(8)}"
 puts "Total buffer full time          : #{buffer_full_time.round(8)}"
 puts "Buffer full time %              : #{"%.8f" % (buffer_full_time/t).round(8)}"
+puts "Total buffer empty time         : #{buffer_empty_time.round(8)}"
+puts "Buffer empty time %             : #{"%.8f" % (buffer_empty_time/t).round(8)}"
