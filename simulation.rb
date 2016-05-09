@@ -3,12 +3,12 @@ require 'pry'
 # MAX TRANSFER UNIT
 MTU = 1500
 # VARIABLES FOR THE EXCERCISES
-max_capacity = 200
-k = 15 #Clients
+max_capacity = 50
+k = 5#Clients
 ############################# Initial clients ##################################
 
 clients_current_frame = []
-k.times do 
+k.times do
   clients_current_frame << 0
 end
 current_client = 0
@@ -42,7 +42,7 @@ end
 
 frames.map! do |frame|
   (frame.to_f / MTU).ceil
-end 
+end
 
 f.close
 
@@ -103,8 +103,9 @@ delayed_time = 0.0
 buffer_full = false
 buffer_full_time = 0.0
 buffer_full_initial_time = 0.0
- 
+
 while (t < 1000)
+  puts "#{clients_current_frame.size}"
   # if there are no more clients it ends the simulation
   if clients_current_frame.size == 0
     break
@@ -206,7 +207,7 @@ end
 
 p_of_rejections = rejected_requests / total_messages.to_f
 
-  
+
 x_nurx = completed_packets/t
 u_nurx = b/t
 n_nurx = s/t
@@ -215,7 +216,7 @@ r_nurx = n_nurx/x_nurx
 puts "\n"
 puts "Total Messages                  : #{total_messages}"
 puts "Total time of simulation        : #{t.round(8)}"
-puts "Completed packages              : #{completed_packets}" 
+puts "Completed packages              : #{completed_packets}"
 puts "Errors at sending               : #{errors_at_sending}"
 puts "Initial clients                 : #{k}"
 puts "Clients subscribed(final)       : #{clients_current_frame.size}"
