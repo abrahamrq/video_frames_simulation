@@ -188,6 +188,8 @@ while (t < 1000)
           # remove packet from buffer and complete packet
           # print "*"
           dt=t-last_time
+          s = s + n * dt
+          last_time = t
           n = n - 1
           b = b + z
           if (n==0)
@@ -197,8 +199,6 @@ while (t < 1000)
             end
             departure_time = 1000000
           end
-          s = s + n * dt
-          last_time = t
         end
         # update departure time
         departure_time= t + z
@@ -218,13 +218,16 @@ end
 
 p_of_rejections = rejected_requests / total_messages.to_f
 
-x_nurx = completed_packets/t
+completed_requests = (clients_finished * 2000) + clients_current_frame.inject(0){|sum,x| sum + x }
+x_nurx_r = (completed_requests*frames.inject(0){|sum,x| sum + x } / 2000.0)/t
+x_nurx_p = completed_packets/t
 u_nurx = b/t
 n_nurx = s/t
-r_nurx = n_nurx/x_nurx
+r_nurx = n_nurx/x_nurx_p
 
 puts "\n"
-puts "Total Messages                  : #{total_messages}"
+puts "Average of packets per frame    : #{frames.inject(0){|sum,x| sum + x } / 2000.0}"
+puts "Total Requests                  : #{total_messages}"
 puts "Total time of simulation        : #{t.round(8)}"
 puts "Completed packages              : #{completed_packets}" 
 puts "Errors at sending               : #{errors_at_sending}"
@@ -237,7 +240,8 @@ puts "Max packets on queue            : #{max_packets_in_queue}"
 puts "N                               : #{n_nurx.round(8)}"
 puts "U                               : #{u_nurx.round(8)}"
 puts "R                               : #{r_nurx.round(8)}"
-puts "X                               : #{x_nurx.round(8)}"
+puts "X (requests)                    : #{x_nurx_r.round(8)}"
+puts "X (packets)                     : #{x_nurx_p.round(8)}"
 puts "Message Requests rejected       : #{rejected_requests}"
 puts "Probability(reject of buffer)   : #{"%.8f" % p_of_rejections.round(8)}"
 puts "Total delay time                : #{delayed_time.round(8)}"
