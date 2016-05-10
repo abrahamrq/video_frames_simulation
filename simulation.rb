@@ -1,11 +1,15 @@
 require 'pry'
 require 'gruff'
 
+
+generate_graphs = true
 # MAX TRANSFER UNIT
 MTU = 1500
 # VARIABLES FOR THE EXCERCISES
-max_capacity = 100
-k = 10 #Clients
+puts "Enter max capacity: "
+max_capacity = gets.chomp.to_i
+puts "Enter nuber of initial clients: "
+k = gets.chomp.to_i
 ############################# Initial clients ##################################
 
 clients_current_frame = []
@@ -116,6 +120,9 @@ buffer_full_initial_time = 0.0
 buffer_empty = false
 buffer_empty_time = 0.0
 buffer_empty_initial_time = 0.0
+
+buffer_for_graph = []
+times_count = 0
  
 while (t < 1000)
   # update max packets in the queue
@@ -126,6 +133,10 @@ while (t < 1000)
   if clients_current_frame.size == 0
     break
   else
+    if times_count % 10 == 0
+      buffer_for_graph << n
+    end
+    times_count += 1
     if (t > client_arrival_time)
       # new arrival time of a client
       client_arrival_time += clients_rate
@@ -262,3 +273,26 @@ puts "Total buffer full time          : #{buffer_full_time.round(8)}"
 puts "Buffer full time %              : #{"%.8f" % (buffer_full_time/t).round(8)}"
 puts "Total buffer empty time         : #{buffer_empty_time.round(8)}"
 puts "Buffer empty time %             : #{"%.8f" % (buffer_empty_time/t).round(8)}"
+
+
+################################## GRAPHS ######################################
+if generate_graphs
+  puts "\n GENERATING GRAPHS, THIS COULD TAKE A WHILE \n"
+  ########################
+  ### buffer over time ###
+  ########################
+  label_distance = (buffer_for_graph.size / 10).floor
+  labels = {}
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].each do |label|
+    labels[label*label_distance] = (label * 100).to_s
+  end
+  g = Gruff::Line.new
+  g.title = 'Packets in buffer'
+  g.labels = labels
+  g.data :Packets, buffer_for_graph
+  g.write('graphs/packets_in_buffer.png')
+  print "."
+  print "\n"
+end
+
+################################################################################
