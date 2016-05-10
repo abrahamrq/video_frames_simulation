@@ -8,7 +8,7 @@ MTU = 1500
 # VARIABLES FOR THE EXCERCISES
 puts "Enter max capacity: "
 max_capacity = gets.chomp.to_i
-puts "Enter nuber of initial clients: "
+puts "Enter number of initial clients: "
 k = gets.chomp.to_i
 ############################# Initial clients ##################################
 
@@ -29,7 +29,8 @@ client_arrival_time = clients_rate
 ############################# GENERATE FRAMES ##################################
 
 frames = []
-f = File.open("data/Terse_Jurassic.dat") or die "Unable to open file..."
+dat_file_name = "Terse_Jurassic"
+f = File.open("data/#{dat_file_name}.dat") or die "Unable to open file..."
 
 # RANDOM INITIAL FRAME
 # initial_frame = initial_delay = rand(10000..50000)
@@ -121,8 +122,11 @@ buffer_empty = false
 buffer_empty_time = 0.0
 buffer_empty_initial_time = 0.0
 
+# variables for graphs
 buffer_for_graph = []
+clients_for_graph = []
 times_count = 0
+
  
 while (t < 1000)
   # update max packets in the queue
@@ -133,10 +137,13 @@ while (t < 1000)
   if clients_current_frame.size == 0
     break
   else
-    if times_count % 10 == 0
-      buffer_for_graph << n
+    if generate_graphs
+      if times_count % 10 == 0
+        buffer_for_graph << n
+        clients_for_graph << clients_current_frame.size
+      end
+      times_count += 1
     end
-    times_count += 1
     if (t > client_arrival_time)
       # new arrival time of a client
       client_arrival_time += clients_rate
@@ -278,20 +285,32 @@ puts "Buffer empty time %             : #{"%.8f" % (buffer_empty_time/t).round(8
 ################################## GRAPHS ######################################
 if generate_graphs
   puts "\n GENERATING GRAPHS, THIS COULD TAKE A WHILE \n"
-  ########################
-  ### buffer over time ###
-  ########################
   label_distance = (buffer_for_graph.size / 10).floor
   labels = {}
   [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].each do |label|
     labels[label*label_distance] = (label * 100).to_s
   end
+
+  ########################
+  ### buffer over time ###
+  ########################
   g = Gruff::Line.new
   g.title = 'Packets in buffer'
   g.labels = labels
   g.data :Packets, buffer_for_graph
-  g.write('graphs/packets_in_buffer.png')
+  g.write("graphs/#{dat_file_name}_packets_in_buffer.png")
   print "."
+
+  ########################
+  ### buffer over time ###
+  ########################
+  g = Gruff::Line.new
+  g.title = 'Clients in system'
+  g.labels = labels
+  g.data :Clients, clients_for_graph
+  g.write("graphs/#{dat_file_name}_clients_in_system.png")
+  print "."
+
   print "\n"
 end
 
