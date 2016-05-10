@@ -1,4 +1,5 @@
 require 'pry'
+require 'gruff'
 
 # MAX TRANSFER UNIT
 MTU = 1500
@@ -31,6 +32,8 @@ f = File.open("data/Terse_Jurassic.dat") or die "Unable to open file..."
 # STATIC INITIAL FRAME
 initial_frame = initial_delay = 10000
 aux = 0
+# creates an array of frames using an offset of 10000
+# it contains the frame size of 2000 frames
 f.each_line do |line|
   if aux > initial_frame + 2000
     break
@@ -40,6 +43,7 @@ f.each_line do |line|
   aux += 1
 end
 
+# change the array from size of each frame to packets for each frame
 frames.map! do |frame|
   (frame.to_f / MTU).ceil
 end 
@@ -50,9 +54,12 @@ f.close
 
 ########################### GENERATE DELAYS ####################################
 
+# read data/amazon_delays.dat that contains the delay for each frame
 delays = []
 f = File.open("data/amazon_delays.dat") or die "Unable to open file..."
 
+
+# create an array of delays using the same offset of the frames
 aux = 0
 f.each_line do |line|
   if aux > initial_delay + 2000
@@ -95,6 +102,7 @@ s = 0.0
 velocity_of_bandwidth = 0.000222
 velocity_of_arrival = 0.001
 
+# variables needed for data extraction
 rejected_requests = 0
 errors_at_sending = 0
 clients_finished = 0
@@ -110,10 +118,11 @@ buffer_empty_time = 0.0
 buffer_empty_initial_time = 0.0
  
 while (t < 1000)
-  # if there are no more clients it ends the simulation
+  # update max packets in the queue
   if max_packets_in_queue < n
     max_packets_in_queue = n
   end
+  # if there are no more clients it ends the simulation
   if clients_current_frame.size == 0
     break
   else
@@ -123,6 +132,7 @@ while (t < 1000)
       # ENABLE DYNAMIC CLIENTS if comment this line, there will be no new
       # clients
       clients_current_frame << 0
+      # updates max and min clients on th system
       if max_clients_in_system < clients_current_frame.size
         max_clients_in_system = clients_current_frame.size
       end
@@ -136,6 +146,7 @@ while (t < 1000)
         total_messages += 1
         # If packets will fit in buffer put them in it
         if n + (frames[clients_current_frame[current_client]]) <= max_capacity
+          # end buffer empty event
           if (buffer_empty)
             buffer_empty = false
             buffer_empty_time += t - buffer_empty_initial_time
@@ -166,6 +177,7 @@ while (t < 1000)
           # if the packet didn't fit update rejected messages
           rejected_requests += 1
           z = velocity_of_arrival
+          # start buffer full event
           if !buffer_full
             buffer_full = true
             buffer_full_initial_time = t
@@ -193,6 +205,7 @@ while (t < 1000)
           n = n - 1
           b = b + z
           if (n==0)
+            # start buffer empty event
             if ! buffer_empty
               buffer_empty = true
               buffer_empty_initial_time = t
