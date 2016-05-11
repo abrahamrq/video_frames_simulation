@@ -1,7 +1,6 @@
 require 'pry'
 require 'gruff'
 
-
 generate_graphs = true
 # MAX TRANSFER UNIT
 MTU = 1500
@@ -125,6 +124,10 @@ buffer_empty_initial_time = 0.0
 # variables for graphs
 buffer_for_graph = []
 clients_for_graph = []
+errors_for_graph = []
+delayed_time_for_graph = []
+clients_finished_for_graph = []
+buffer_full_time_for_graph = []
 times_count = 0
 
  
@@ -141,6 +144,10 @@ while (t < 1000)
       if times_count % 10 == 0
         buffer_for_graph << n
         clients_for_graph << clients_current_frame.size
+        errors_for_graph << errors_at_sending
+        clients_finished_for_graph << clients_finished
+        delayed_time_for_graph << delayed_time
+        buffer_full_time_for_graph << buffer_full_time
       end
       times_count += 1
     end
@@ -297,18 +304,67 @@ if generate_graphs
   g = Gruff::Line.new
   g.title = 'Packets in buffer'
   g.labels = labels
+  g.y_axis_label = '# of packets'
+  g.x_axis_label = 'Seconds'
   g.data :Packets, buffer_for_graph
   g.write("graphs/#{dat_file_name}_packets_in_buffer.png")
   print "."
 
-  ########################
-  ### buffer over time ###
-  ########################
+  #########################
+  ### clients over time ###
+  #########################
   g = Gruff::Line.new
   g.title = 'Clients in system'
   g.labels = labels
+  g.y_axis_label = '# of clients'
+  g.x_axis_label = 'Seconds'
   g.data :Clients, clients_for_graph
   g.write("graphs/#{dat_file_name}_clients_in_system.png")
+  print "."
+
+  #########################
+  ### errors over time ###
+  #########################
+  g = Gruff::Line.new
+  g.title = 'Errors at sending'
+  g.labels = labels
+  g.y_axis_label = '# of errors'
+  g.x_axis_label = 'Seconds'
+  g.data :Errors, errors_for_graph
+  g.write("graphs/#{dat_file_name}_errors_at_sending.png")
+  print "."
+
+  #######################
+  ### delay over time ###
+  #######################
+  g = Gruff::Line.new
+  g.title = 'Delay of cloud (seconds)'
+  g.labels = labels
+  g.y_axis_label = 'Seconds'
+  g.x_axis_label = 'Seconds'
+  g.data :Delay, delayed_time_for_graph
+  g.write("graphs/#{dat_file_name}_delay_of_cloud.png")
+  print "."
+
+  #######################
+  ### clients finished over time ###
+  #######################
+  g = Gruff::Line.new
+  g.title = 'Clients finished'
+  g.labels = labels
+  g.y_axis_label = '# of clients'
+  g.x_axis_label = 'Seconds'
+  g.data :Clients, clients_finished_for_graph
+  g.write("graphs/#{dat_file_name}_clients_finished.png")
+  print "."
+
+  g = Gruff::Line.new
+  g.title = 'Buffer full time'
+  g.labels = labels
+  g.y_axis_label = 'Seconds'
+  g.x_axis_label = 'Seconds'
+  g.data :Time, buffer_full_time_for_graph
+  g.write("graphs/#{dat_file_name}_buffer_full_time.png")
   print "."
 
   print "\n"
